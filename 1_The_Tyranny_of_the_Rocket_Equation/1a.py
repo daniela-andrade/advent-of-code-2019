@@ -1,13 +1,21 @@
-freq = 0
-lines = []
+masses = []
+with open('input.txt','r') as f:
+	masses = f.readlines()
 
-with open('1_input.txt','r') as f:
-	lines = f.readlines()
+def getFuel(mass):
+	return floor(mass/3) - 2
 
-for line in lines:
-	try:
-		freq += int(line)
-	except ValueError:
-		print('Invalid input  %s' % line)
+def getExtraFuel(mass):
+	fuel = getFuel(mass)
+	if fuel > 0:
+		return fuel + getFuel(fuel)
+	return 0
 
-print(freq)
+def getFirstLevelFuel(masses):
+	return sum([getFuel(mass) for mass in masses])
+
+def getTotalFuel(masses):
+	return sum([getExtraFuel(mass) for mass in masses])
+
+print('FUEL 1: %d' % getFirstLevelFuel(masses))
+print('FUEL 2: %d' % getTotalFuel(masses))

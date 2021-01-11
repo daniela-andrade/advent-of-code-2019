@@ -1,101 +1,59 @@
-minCrossManhattan = 1000000
+import sys
+
+minCrossManhattan = sys.maxsize
+minCrossLowestSteps = sys.maxsize
+
 def updateCrossManhattan(x, y):
 	global minCrossManhattan
-	newCross = abs(x) + abs(y)
-	if minCrossManhattan > newCross:
-		minCrossManhattan = newCross
+	minCrossManhattan = min(minCrossManhattan, abs(x) + abs(y))
 
-minCrossLowestSteps = 1000000
-def updateCrossLowestSteps(x, y, stepsTwo):
+def updateCrossLowestSteps(x, y, grid, steps):
 	global minCrossLowestSteps
-	newCross = grid[(x,y)][1] + stepsTwo
-	if minCrossLowestSteps > newCross:
-		minCrossLowestSteps = newCross
+	minCrossLowestSteps = min(minCrossLowestSteps, grid[(x,y)][1] + steps)
 
-values = []
-values2 = []
+def addWireToGrid(wire, grid, addWireFunc, x=0, y=0, steps=-1):
+	for dir in wire:
+		if dir[0] == 'R':
+			for r in range(x,x+int(dir[1:])):
+				steps = addWireFunc(grid, r, y, steps)
+			x += int(dir[1:])
+		if dir[0] == 'U':
+			for u in range(y,y+int(dir[1:])):
+				steps = addWireFunc(grid, x, u, steps)
+			y += int(dir[1:])
+		if dir[0] == 'L':
+			for l in range(x,x-int(dir[1:]),-1):
+				steps = addWireFunc(grid, l, y, steps)
+			x -= int(dir[1:])
+		if dir[0] == 'D':
+			for d in range(y,y-int(dir[1:]),-1):
+				steps = addWireFunc(grid, x, d, steps)
+			y -= int(dir[1:])
+
+def addWireFuncOne(grid, x, y, steps):
+	steps += 1
+	grid[(x,y)] = (1, steps)
+	return steps
+
+def addWireFuncTwo(grid, x, y, steps):
+	steps += 1
+	if (x,y) in grid and grid[(x,y)][0] == 1:
+		updateCrossManhattan(x,y)
+		updateCrossLowestSteps(x,y,grid,steps)
+		grid[(x,y)] = (3,steps)
+	else:
+		grid[(x,y)] = (2,steps)
+	return steps
+
+wireOne = []
+wireTwo = []
 with open('input.txt', 'r') as f:
-	lines = f.readlines()
-	values = lines[0].split(',')
-	values2 =lines[1].split(',')
+	wireOne, wireTwo = [values.split(',') for values in f.readlines()]
+
 grid = dict([])
-
-x = 0
-y = 0
-steps = -1
-
-for direction in values:	
-if direction[0] == 'R':
-	for r in range(x,x+int(direction[1:])):
-		steps += 1
-		grid[(r,y)] = (1, steps)
-	x += int(direction[1:])
-if direction[0] == 'U':
-	for u in range(y,y+int(direction[1:])):
-		steps += 1
-		grid[(x,u)] = (1,steps)
-	y += int(direction[1:])
-if direction[0] == 'L':
-	for l in range(x,x-int(direction[1:]),-1):
-		steps += 1
-		grid[(l,y)] = (1,steps)
-	x -= int(direction[1:])
-if direction[0] == 'D':
-	for d in range(y,y-int(direction[1:]),-1):
-		steps += 1
-		grid[(x,d)] = (1,steps)
-	y -= int(direction[1:])
-
-x = 0
-y = 0
-steps = -1
+addWireToGrid(wireOne, grid, addWireFuncOne)
 grid[(0,0)] = (2,0)
+addWireToGrid(wireTwo, grid, addWireFuncTwo)
 
-for direction in values2:	
-if direction[0] == 'R':
-	for r in range(x,x+int(direction[1:])):
-		steps += 1
-		if (r,y) in grid and grid[(r,y)][0] == 1:
-			updateCrossManhattan(r,y)
-			updateCrossLowestSteps(r,y,steps)
-			grid[(r,y)] = (3,steps)
-		else:
-			grid[(r,y)] = (2,steps)
-	x += int(direction[1:])
-
-if direction[0] == 'U':
-	for u in range(y,y+int(direction[1:])):
-		steps += 1
-		if (x,u) in grid and grid[(x,u)][0] == 1:
-			updateCrossManhattan(x,u)
-			updateCrossLowestSteps(x,u,steps)
-			grid[(x,u)] = (3,steps)
-		else:
-			grid[(x,u)] = (2,steps)
-	y += int(direction[1:])
-
-if direction[0] == 'L':
-	for l in range(x,x-int(direction[1:]),-1):
-		steps += 1
-		if (l,y) in grid and grid[(l,y)][0] == 1:
-			updateCrossManhattan(l,y)
-			updateCrossLowestSteps(l,y,steps)
-			grid[(l,y)] = (3,steps)
-		else:
-			grid[(l,y)] = (2,steps)
-	x -= int(direction[1:])
-
-if direction[0] == 'D':
-	for d in range(y,y-int(direction[1:]),-1):
-		steps += 1
-		if (x,d) in grid and grid[(x,d)][0] == 1:
-			updateCrossManhattan(x,d)
-			updateCrossLowestSteps(x,d,steps)
-			grid[(x,d)] = (3,steps)
-		else:
-			grid[(x,d)] = (2,steps)
-	y -= int(direction[1:])
-
-
-print(minCrossManhattan)
-print(minCrossLowestSteps)
+print('MinCrossManhattan: %d' % minCrossManhattan)
+print('MinCrossLowestSteps: %d' % minCrossLowestSteps)
